@@ -1,0 +1,43 @@
+name: OTA Update
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'EAS Update branch'
+        type: choice
+        default: production
+        options: [production, preview, development]
+      message:
+        description: 'Release notes'
+        required: true
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'assets/**'
+      - 'app.config.ts'
+
+jobs:
+  ota:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: yarn install --frozen-lockfile
+      - name: Publish OTA
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        run: |
+          eas update \
+            --non-interactive \
+            --branch ${{ github.event.inputs.branch || 'production' }} \
+            --message "${{ github.event.inputs.message || format('auto: {0}', github.event.head_commit.message) }}"

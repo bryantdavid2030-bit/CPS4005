@@ -1,0 +1,57 @@
+name: EAS Build & Submit
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'EAS build profile'
+        type: choice
+        default: production
+        options: [development, preview, production]
+      platform:
+        description: 'Target platform'
+        type: choice
+        default: all
+        options: [all, ios, android]
+      submit:
+        description: 'Submit to stores after build'
+        type: boolean
+        default: false
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build:
+    name: EAS build (${{ github.event.inputs.platform || 'all' }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Install deps
+        run: yarn install --frozen-lockfile
+      - name: Build
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        run: |
+          eas build \
+            --non-interactive \
+            --no-wait \
+            --platform ${{ github.event.inputs.platform || 'all' }} \
+            --profile ${{ github.event.inputs.profile || 'production' }}
+      - name: Submit
+        if: ${{ github.event.inputs.submit == 'true' }}
+        run: |
+          eas submit \
+            --non-interactive \
+            --latest \
+            --platform ${{ github.event.inputs.platform || 'all' }} \
+            --profile production
