@@ -1,0 +1,13 @@
+devices([
+  'iPhone 15 Pro Max',  # 6.7"
+  'iPhone 15',          # 6.1"
+  'iPhone 8 Plus',      # 5.5"
+])
+
+languages(['en-US', 'en-GB', 'fr-FR', 'de-DE', 'it-IT', 'es-ES', 'ar-SA'])
+
+scheme('humnsprt')
+output_directory('./store/screenshots/ios')
+clear_previous_screenshots(true)
+override_status_bar(true)
+concurrent_simulators(true)

@@ -1,0 +1,65 @@
+default_platform(:ios)
+
+before_all do
+  ensure_git_status_clean
+end
+
+platform :ios do
+  desc 'Push a new beta build to TestFlight'
+  lane :beta do
+    setup_ci if ENV['CI']
+    match(type: 'appstore', readonly: is_ci)
+    increment_build_number(xcodeproj: '../ios/humnsprt.xcodeproj')
+    build_app(
+      workspace: '../ios/humnsprt.xcworkspace',
+      scheme: 'humnsprt',
+      export_method: 'app-store',
+      clean: true,
+    )
+    upload_to_testflight(skip_waiting_for_build_processing: true)
+  end
+
+  desc 'Promote latest TestFlight build to the App Store (manual review)'
+  lane :release do
+    deliver(
+      submit_for_review: true,
+      automatic_release: false,
+      force: true,
+      skip_screenshots: false,
+      skip_metadata: false,
+      precheck_include_in_app_purchases: false,
+    )
+  end
+
+  desc 'Generate App Store screenshots'
+  lane :screenshots do
+    snapshot
+    frameit(silver: true)
+  end
+end
+
+platform :android do
+  desc 'Push a new internal build to Google Play'
+  lane :internal do
+    gradle(task: 'clean bundleRelease', project_dir: '../android/')
+    upload_to_play_store(
+      track: 'internal',
+      aab: '../android/app/build/outputs/bundle/release/app-release.aab',
+      skip_upload_apk: true,
+    )
+  end
+
+  desc 'Promote internal to production'
+  lane :release do
+    upload_to_play_store(
+      track_promote_to: 'production',
+      track: 'internal',
+      release_status: 'draft',
+    )
+  end
+
+  desc 'Generate Google Play screenshots'
+  lane :screenshots do
+    screengrab
+  end
+end

@@ -1,0 +1,7 @@
+app_package_name('com.humnsprt.app')
+use_tests_in_packages(['com.humnsprt.app.screenshots'])
+locales(['en-US', 'en-GB', 'fr-FR', 'de-DE', 'it-IT', 'es-ES', 'ar-SA'])
+clear_previous_screenshots(true)
+output_directory('./store/screenshots/android')
+
+device_type('phone')

@@ -1,0 +1,8 @@
+app_identifier('com.humnsprt.app')
+apple_id('REPLACE_ME@example.com')
+itc_team_id('REPLACE_ME_ITC_TEAM_ID')
+team_id('REPLACE_ME_TEAM_ID')
+
+# Android
+json_key_file('./secrets/play-service-account.json')
+package_name('com.humnsprt.app')

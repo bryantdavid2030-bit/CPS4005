@@ -1,0 +1,42 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: '/'
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+    open-pull-requests-limit: 10
+    labels: ['dependencies', 'javascript']
+    groups:
+      expo-core:
+        patterns:
+          - 'expo'
+          - 'expo-*'
+      react-native:
+        patterns:
+          - 'react-native'
+          - 'react-native-*'
+          - '@react-navigation/*'
+      sentry:
+        patterns:
+          - '@sentry/*'
+      dev-deps:
+        dependency-type: development
+    commit-message:
+      prefix: 'deps'
+      include: scope
+
+  - package-ecosystem: github-actions
+    directory: '/'
+    schedule:
+      interval: weekly
+    labels: ['dependencies', 'github-actions']
+    commit-message:
+      prefix: 'ci'
+
+  - package-ecosystem: bundler
+    directory: '/fastlane'
+    schedule:
+      interval: weekly
+    labels: ['dependencies', 'fastlane']
