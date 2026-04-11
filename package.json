@@ -18,7 +18,7 @@
     "ota": "eas update --branch production --message \"OTA update\""
   },
   "dependencies": {
-    "@expo/vector-icons": "^14.0.2",
+    "@expo/vector-icons": "^15.1.1",
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-navigation/bottom-tabs": "^6.6.1",
     "@react-navigation/native": "^6.1.18",
