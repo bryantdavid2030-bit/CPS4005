@@ -15,7 +15,15 @@
     "build:android": "eas build --platform android --profile production",
     "submit:ios": "eas submit --platform ios",
     "submit:android": "eas submit --platform android",
-    "ota": "eas update --branch production --message \"OTA update\""
+    "ota": "eas update --branch production --message \"OTA update\"",
+    "brand:assets": "node scripts/generate-brand-assets.mjs"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg))"
+    ],
+    "testPathIgnorePatterns": ["/node_modules/", "/android/", "/ios/"]
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",

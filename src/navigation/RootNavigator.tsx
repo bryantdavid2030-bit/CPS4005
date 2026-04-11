@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -191,14 +190,14 @@ export function RootNavigator() {
         {loading ? null : user ? <AppStack /> : <AuthStack />}
       </NavigationContainer>
       {!splashDone && (
-        <Animated.View
-          exiting={FadeOut.duration(400)}
-          entering={FadeIn.duration(0)}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="box-none"
-        >
+        // Splash is absolutely positioned over the navigator so the
+        // next screen is already mounted beneath by the time the splash
+        // fades out — gives us a true cross-fade rather than a hard cut.
+        // The splash itself runs the full opacity animation; we don't
+        // double-up with a layout-animation wrapper here.
+        <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
           <SplashScreen onFinish={() => setSplashDone(true)} />
-        </Animated.View>
+        </View>
       )}
     </View>
   );

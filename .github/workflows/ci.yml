@@ -19,9 +19,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'yarn'
       - name: Install deps
-        run: yarn install --frozen-lockfile
+        # The lockfile is generated at install time (see .gitignore note in
+        # README). In long-lived CI we prefer `--frozen-lockfile` once a
+        # committed lockfile exists.
+        run: yarn install --network-timeout 600000
       - name: Lint
         run: yarn lint
       - name: Typecheck

@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Screen } from '@/components/Screen';
 import { CoachCard } from '@/components/CoachCard';
@@ -60,16 +60,17 @@ export function HomeScreen({ onOpenCoach, onOpenAll, onOpenConcierge }: HomeScre
       </Text>
       <View style={{ height: theme.spacing.lg }} />
 
-      <FlatList
-        data={featured}
-        keyExtractor={(item) => item.id}
-        scrollEnabled={false}
-        renderItem={({ item, index }) => (
-          <Animated.View entering={FadeInDown.duration(600).delay(120 * index)}>
-            <CoachCard coach={item} onPress={onOpenCoach} />
-          </Animated.View>
-        )}
-      />
+      {/* Nested FlatList inside a ScrollView triggers a RN warning and
+          virtualisation is wasted here — the featured list is small and
+          already inside a scroll container, so render with .map(). */}
+      {featured.map((item, index) => (
+        <Animated.View
+          key={item.id}
+          entering={FadeInDown.duration(600).delay(120 * index)}
+        >
+          <CoachCard coach={item} onPress={onOpenCoach} />
+        </Animated.View>
+      ))}
 
       <View style={styles.conciergeCard}>
         <Text style={[theme.typography.eyebrow, { color: theme.colors.accent }]}>

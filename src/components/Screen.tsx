@@ -37,7 +37,10 @@ export function Screen({
   const inner = (
     <View
       style={[
-        styles.inner,
+        // Inside a ScrollView we don't want `flex: 1` on the content
+        // wrapper — it pins the content to the viewport height and
+        // stops it from scrolling. Let it size to its children.
+        scroll ? styles.innerScroll : styles.inner,
         padded && { paddingHorizontal: theme.spacing.screen },
         contentStyle,
       ]}
@@ -68,4 +71,5 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   scroll: { flexGrow: 1 },
   inner: { flex: 1 },
+  innerScroll: {},
 });
