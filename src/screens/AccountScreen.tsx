@@ -1,7 +1,9 @@
 import React from 'react';
 import { Linking, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { Screen } from '@/components/Screen';
 import { Button } from '@/components/Button';
+import { useFavourites } from '@/hooks/useFavourites';
 import { useTheme } from '@/theme';
 import { useAuth } from '@/services/auth';
 import Constants from 'expo-constants';
@@ -9,6 +11,7 @@ import Constants from 'expo-constants';
 export function AccountScreen() {
   const theme = useTheme();
   const { user, signOut } = useAuth();
+  const { favourites } = useFavourites();
 
   const row = (label: string, value: string) => (
     <View style={styles.row}>
@@ -23,48 +26,51 @@ export function AccountScreen() {
 
   return (
     <Screen scroll>
-      <Text style={[theme.typography.eyebrow, { color: theme.colors.textMuted }]}>
-        Your account
-      </Text>
-      <Text
-        style={[
-          theme.typography.displayL,
-          { color: theme.colors.text, marginTop: theme.spacing.sm },
-        ]}
-      >
-        {user?.name ?? 'Guest'}
-      </Text>
+      <Animated.View entering={FadeIn.duration(500)}>
+        <Text style={[theme.typography.eyebrow, { color: theme.colors.textMuted }]}>
+          Your account
+        </Text>
+        <Text
+          style={[
+            theme.typography.displayL,
+            { color: theme.colors.text, marginTop: theme.spacing.sm },
+          ]}
+        >
+          {user?.name ?? 'Guest'}
+        </Text>
 
-      <View style={{ height: theme.spacing.xl }} />
-      {user && row('Email', user.email)}
-      {user && row('Role', user.role)}
-      {row('Version', `${Constants.expoConfig?.version ?? '1.0.0'}`)}
+        <View style={{ height: theme.spacing.xl }} />
+        {user && row('Email', user.email)}
+        {user && row('Role', user.role)}
+        {row('Saved coaches', `${favourites.length}`)}
+        {row('Version', `${Constants.expoConfig?.version ?? '1.0.0'}`)}
 
-      <View style={{ height: theme.spacing.xxxl }} />
-      <Text
-        style={[
-          theme.typography.eyebrow,
-          { color: theme.colors.textMuted, marginBottom: theme.spacing.md },
-        ]}
-      >
-        Legal
-      </Text>
-      <Button
-        variant="ghost"
-        label="Privacy policy"
-        fullWidth={false}
-        onPress={() => Linking.openURL('https://humnsprt.com/privacy')}
-      />
-      <Button
-        variant="ghost"
-        label="Terms of service"
-        fullWidth={false}
-        onPress={() => Linking.openURL('https://humnsprt.com/terms')}
-      />
+        <View style={{ height: theme.spacing.xxxl }} />
+        <Text
+          style={[
+            theme.typography.eyebrow,
+            { color: theme.colors.textMuted, marginBottom: theme.spacing.md },
+          ]}
+        >
+          Legal
+        </Text>
+        <Button
+          variant="ghost"
+          label="Privacy policy"
+          fullWidth={false}
+          onPress={() => Linking.openURL('https://humnsprt.com/privacy')}
+        />
+        <Button
+          variant="ghost"
+          label="Terms of service"
+          fullWidth={false}
+          onPress={() => Linking.openURL('https://humnsprt.com/terms')}
+        />
 
-      <View style={{ height: theme.spacing.huge }} />
-      {user ? <Button label="Sign out" variant="secondary" onPress={signOut} /> : null}
-      <View style={{ height: theme.spacing.huge }} />
+        <View style={{ height: theme.spacing.huge }} />
+        {user ? <Button label="Sign out" variant="secondary" onPress={signOut} /> : null}
+        <View style={{ height: theme.spacing.huge }} />
+      </Animated.View>
     </Screen>
   );
 }

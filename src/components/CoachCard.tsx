@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '@/theme';
+import { FavouriteButton } from '@/components/FavouriteButton';
 import type { Coach } from '@/types';
 
 interface CoachCardProps {
@@ -33,17 +34,22 @@ export function CoachCard({ coach, onPress, compact }: CoachCardProps) {
         ) : null}
       </View>
       <View style={{ marginTop: theme.spacing.lg }}>
-        <Text style={[theme.typography.eyebrow, { color: theme.colors.accent }]}>
-          {coach.discipline}
-        </Text>
-        <Text
-          style={[
-            theme.typography.displayS,
-            { color: theme.colors.text, marginTop: theme.spacing.sm },
-          ]}
-        >
-          {coach.name}
-        </Text>
+        <View style={styles.titleRow}>
+          <View style={styles.titleText}>
+            <Text style={[theme.typography.eyebrow, { color: theme.colors.accent }]}>
+              {coach.discipline}
+            </Text>
+            <Text
+              style={[
+                theme.typography.displayS,
+                { color: theme.colors.text, marginTop: theme.spacing.sm },
+              ]}
+            >
+              {coach.name}
+            </Text>
+          </View>
+          <FavouriteButton coachId={coach.id} />
+        </View>
         <Text
           style={[
             theme.typography.body,
@@ -62,4 +68,10 @@ const styles = StyleSheet.create({
   card: { width: '100%' },
   imageWrap: { width: '100%', overflow: 'hidden' },
   image: { width: '100%', height: '100%' },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  titleText: { flex: 1 },
 });

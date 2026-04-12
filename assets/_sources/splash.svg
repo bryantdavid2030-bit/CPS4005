@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1284" height="2778" viewBox="0 0 1284 2778">
+  <rect width="1284" height="2778" fill="#0B0B0C"/>
+  <g transform="translate(382,1289) scale(2)">
+    <path d="M12 14 L12 78" stroke="#F4F1EA" stroke-width="3"/>
+    <path d="M46 14 L46 78" stroke="#F4F1EA" stroke-width="3"/>
+    <path d="M12 46 L46 46" stroke="#F4F1EA" stroke-width="3"/>
+    <text x="72" y="54" fill="#F4F1EA" font-family="serif" font-size="28" letter-spacing="2">HUMN SPRT</text>
+    <path d="M12 92 L248 92" stroke="#F4F1EA" stroke-width="0.8" opacity="0.6"/>
+  </g>
+</svg>

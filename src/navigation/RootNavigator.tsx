@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { Platform, StyleSheet, View } from 'react-native';
+import {
+  NavigationContainer,
+  DefaultTheme,
+  DarkTheme,
+  LinkingOptions,
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import * as Linking from 'expo-linking';
 
 import { SplashScreen } from '@/screens/SplashScreen';
 import { AuthScreen } from '@/screens/AuthScreen';
@@ -13,6 +19,7 @@ import { CoachDetailScreen } from '@/screens/CoachDetailScreen';
 import { EnquiryScreen } from '@/screens/EnquiryScreen';
 import { EnquirySuccessScreen } from '@/screens/EnquirySuccessScreen';
 import { AccountScreen } from '@/screens/AccountScreen';
+import { AboutScreen } from '@/screens/AboutScreen';
 import { useTheme } from '@/theme';
 import { useAuth } from '@/services/auth';
 import type { Coach, Enquiry } from '@/types';
@@ -27,11 +34,32 @@ type RootStackParamList = {
 type TabParamList = {
   Home: undefined;
   Roster: undefined;
+  About: undefined;
   Account: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
+
+/** Deep linking configuration for the humnsprt:// scheme. */
+const linking: LinkingOptions<RootStackParamList> = {
+  prefixes: [Linking.createURL('/'), 'humnsprt://'],
+  config: {
+    screens: {
+      Tabs: {
+        screens: {
+          Home: '',
+          Roster: 'roster',
+          About: 'about',
+          Account: 'account',
+        },
+      },
+      CoachDetail: 'coach/:id',
+      Enquiry: 'enquiry',
+      EnquirySuccess: 'enquiry/success',
+    },
+  },
+};
 
 function Tabs() {
   const theme = useTheme();
@@ -45,9 +73,9 @@ function Tabs() {
           backgroundColor: theme.colors.background,
           borderTopColor: theme.colors.border,
           borderTopWidth: StyleSheet.hairlineWidth,
-          height: 78,
+          height: Platform.OS === 'ios' ? 84 : 68,
           paddingTop: 10,
-          paddingBottom: 20,
+          paddingBottom: Platform.OS === 'ios' ? 24 : 10,
         },
         tabBarLabelStyle: {
           fontFamily: theme.fonts.sansMedium,
@@ -56,20 +84,20 @@ function Tabs() {
           textTransform: 'uppercase',
         },
         tabBarIcon: ({ color, size }) => {
-          const icon =
-            route.name === 'Home'
-              ? 'sparkles-outline'
-              : route.name === 'Roster'
-                ? 'people-outline'
-                : 'person-outline';
-          return <Ionicons name={icon as any} size={size - 2} color={color} />;
+          let icon: keyof typeof Ionicons.glyphMap = 'sparkles-outline';
+          if (route.name === 'Roster') icon = 'people-outline';
+          else if (route.name === 'About') icon = 'information-circle-outline';
+          else if (route.name === 'Account') icon = 'person-outline';
+          return <Ionicons name={icon} size={size - 2} color={color} />;
         },
       })}
     >
       <Tab.Screen name="Home">
         {({ navigation }) => (
           <HomeScreen
-            onOpenCoach={(coach) => navigation.getParent()?.navigate('CoachDetail', { coach })}
+            onOpenCoach={(coach) =>
+              navigation.getParent()?.navigate('CoachDetail', { coach })
+            }
             onOpenAll={() => navigation.navigate('Roster')}
             onOpenConcierge={() =>
               navigation
@@ -82,10 +110,13 @@ function Tabs() {
       <Tab.Screen name="Roster">
         {({ navigation }) => (
           <CoachesScreen
-            onOpenCoach={(coach) => navigation.getParent()?.navigate('CoachDetail', { coach })}
+            onOpenCoach={(coach) =>
+              navigation.getParent()?.navigate('CoachDetail', { coach })
+            }
           />
         )}
       </Tab.Screen>
+      <Tab.Screen name="About" component={AboutScreen} />
       <Tab.Screen name="Account" component={AccountScreen} />
     </Tab.Navigator>
   );
@@ -95,7 +126,9 @@ const AuthStackNav = createNativeStackNavigator();
 
 function AuthStack() {
   return (
-    <AuthStackNav.Navigator screenOptions={{ headerShown: false, animation: 'fade' }}>
+    <AuthStackNav.Navigator
+      screenOptions={{ headerShown: false, animation: 'fade' }}
+    >
       <AuthStackNav.Screen name="Auth" component={AuthScreen} />
     </AuthStackNav.Navigator>
   );
@@ -123,7 +156,10 @@ function AppStack() {
           />
         )}
       </Stack.Screen>
-      <Stack.Screen name="Enquiry" options={{ animation: 'slide_from_bottom' }}>
+      <Stack.Screen
+        name="Enquiry"
+        options={{ animation: 'slide_from_bottom' }}
+      >
         {({ navigation, route }) => (
           <EnquiryScreen
             coach={route.params?.coach}
@@ -186,15 +222,10 @@ export function RootNavigator() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <NavigationContainer theme={navTheme}>
+      <NavigationContainer theme={navTheme} linking={linking}>
         {loading ? null : user ? <AppStack /> : <AuthStack />}
       </NavigationContainer>
       {!splashDone && (
-        // Splash is absolutely positioned over the navigator so the
-        // next screen is already mounted beneath by the time the splash
-        // fades out — gives us a true cross-fade rather than a hard cut.
-        // The splash itself runs the full opacity animation; we don't
-        // double-up with a layout-animation wrapper here.
         <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
           <SplashScreen onFinish={() => setSplashDone(true)} />
         </View>

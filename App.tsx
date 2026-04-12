@@ -6,6 +6,7 @@ import * as ExpoSplash from 'expo-splash-screen';
 import * as Sentry from '@sentry/react-native';
 import Constants from 'expo-constants';
 import { AuthProvider } from '@/services/auth';
+import { FavouritesProvider } from '@/hooks/useFavourites';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { useAppFonts } from '@/hooks/useAppFonts';
 import { useTheme } from '@/theme';
@@ -49,7 +50,9 @@ function Root() {
 
   return (
     <AuthProvider>
-      <RootNavigator />
+      <FavouritesProvider>
+        <RootNavigator />
+      </FavouritesProvider>
     </AuthProvider>
   );
 }

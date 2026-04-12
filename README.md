@@ -13,7 +13,7 @@ corporate clients. Targets iOS and Android from a single codebase.
 ## Stack
 
 - Expo SDK 51, React Native 0.74, TypeScript (strict)
-- React Navigation (native stack + tabs)
+- React Navigation (native stack + bottom tabs)
 - react-native-reanimated v3 for the intro and screen transitions
 - Sentry for crash / performance monitoring
 - Expo Updates (EAS Update) for OTA delivery
@@ -32,13 +32,15 @@ yarn install
 cp .env.example .env
 # fill in EXPO_PUBLIC_API_BASE and SENTRY_DSN if you have them
 
-# 3. Drop font files into assets/fonts (see docs/FONTS.md)
-
-# 4. Run
+# 3. Run
 yarn start           # Metro
 yarn ios             # iOS simulator (requires Xcode)
 yarn android         # Android emulator (requires Android Studio)
 ```
+
+Font files (Inter + Playfair Display) are bundled in `assets/fonts/`.
+Both are free for commercial use under the SIL Open Font License —
+see `docs/FONTS.md` for details.
 
 The app is fully functional without a backend — `src/services/api.ts`
 falls back to the seed data in `src/data/coaches.ts` when no API
@@ -53,30 +55,34 @@ base URL is set.
 | `yarn android`        | Run on an Android emulator                    |
 | `yarn lint`           | ESLint                                        |
 | `yarn typecheck`      | `tsc --noEmit`                                |
-| `yarn test`           | Jest                                          |
+| `yarn test`           | Jest (16 tests across 4 suites)               |
 | `yarn prebuild`       | Generate native iOS / Android projects        |
 | `yarn build:ios`      | EAS build (production iOS)                    |
 | `yarn build:android`  | EAS build (production Android)                |
 | `yarn submit:ios`     | Upload latest iOS build to App Store Connect  |
 | `yarn submit:android` | Upload latest Android build to Play Console   |
 | `yarn ota`            | Publish an OTA update to the production channel |
+| `yarn brand:assets`   | Regenerate icons, splash & feature graphic    |
 
 ## Folder layout
 
 ```
 src/
-  components/     Button, Screen, TextField, CoachCard, FilterChip, Logo
+  __tests__/      Unit / integration tests
+  components/     Button, Screen, TextField, CoachCard, FilterChip, Logo, FavouriteButton
   data/           Local seed data (coaches.ts)
-  hooks/          useAppFonts
-  navigation/     RootNavigator (splash overlay + tabs + stack)
-  screens/        Splash, Auth, Home, Coaches, CoachDetail, Enquiry, Account
+  hooks/          useAppFonts, useFavourites
+  navigation/     RootNavigator (splash overlay + tabs + stack + deep linking)
+  screens/        Splash, Auth, Home, Coaches, CoachDetail, Enquiry, EnquirySuccess, About, Account
   services/       auth, api
   theme/          colors, typography, spacing, shadow, durations
   types/          Coach, Enquiry, User
 assets/
-  fonts/          Playfair Display + Inter (see docs/FONTS.md)
+  fonts/          Playfair Display + Inter (real TTF files bundled)
   icons/          App icons (generated via scripts/generate-brand-assets.mjs)
-  splash/         Splash PNGs
+  splash/         Splash PNGs (iOS + Android adaptive)
+  store/          Feature graphic for Google Play (1024x500)
+  _sources/       SVG source files for brand asset generation
 store/
   app-store/      iOS metadata + privacy nutrition label
   play-store/     Android metadata + data safety form
@@ -91,22 +97,57 @@ docs/
   STORE_SUBMISSION.md Apple + Google submission checklist
   FONTS.md            Where to get the brand typefaces
   legal/              Privacy + terms placeholders
+scripts/
+  generate-brand-assets.mjs   SVG -> PNG asset pipeline
+  screenshots.ts              Screenshot scene manifest for Fastlane
 ```
 
-## The splash intro
+## Features
 
+### Splash intro
 - Logo centred on the brand obsidian background
-- 1.5s ease-in fade + scale 0.85 → 1.0
+- 1.5s ease-in fade + scale 0.85 -> 1.0
 - 1s hold
-- 1.5s ease-out fade + scale 1.0 → 1.05
+- 1.5s ease-out fade + scale 1.0 -> 1.05
 - Cross-fades (not a hard cut) into the next screen
 - Plays on every cold launch, skippable by tap
 - No spinners, no progress bars, no copy
+- Respects `AccessibilityInfo.isReduceMotionEnabled()`
 
-Implementation: `src/screens/SplashScreen.tsx`. It overlays the root
-navigator — the next screen mounts beneath it and the splash fades
-out over the top for a seamless transition. Respects
-`AccessibilityInfo.isReduceMotionEnabled()`.
+### Coach roster
+- Search by name, discipline, or specialty
+- Filter by discipline and location chips
+- Pull-to-refresh against the API (offline fallback to seed data)
+- Staggered entrance animations
+
+### Coach detail
+- Full-bleed portrait image with back, share, and favourite buttons
+- Availability badge (Available / Limited / Waitlist)
+- Specialties, languages, rate, and bio
+- Share profile via native share sheet
+- "Enquire about availability" CTA
+
+### Favourites
+- Heart toggle on coach cards and detail screens
+- Persisted to AsyncStorage across sessions
+- Count shown on Account screen
+
+### Enquiry flow
+- Three enquiry types: Individual, Hotel/Concierge, Corporate
+- Conditional organisation field for non-individual enquiries
+- Success screen with haptic feedback
+
+### Deep linking
+- `humnsprt://` scheme with routes for Home, Roster, About, Account,
+  Coach Detail, and Enquiry
+
+### About screen
+- Brand story, mission, how it works, and design philosophy
+- Legal links (privacy policy, terms of service)
+
+### Account
+- User info, saved coaches count, app version
+- Sign out, legal links
 
 ## OTA updates
 
@@ -124,14 +165,24 @@ guidance on when to ship OTA vs a native build.
 Full checklist in `docs/STORE_SUBMISSION.md`. Metadata and privacy
 answers are tracked in `store/app-store/` and `store/play-store/`.
 
+## Quality gates
+
+All three pass in CI and locally:
+
+```bash
+yarn lint        # ESLint — 0 warnings
+yarn typecheck   # TypeScript strict — 0 errors
+yarn test        # Jest — 16/16 passing
+```
+
 ## Accessibility
 
 - All interactive elements declare role + label.
 - Text scales with system font size.
 - Splash respects Reduce Motion.
-- Minimum 44×44pt hit targets.
+- Minimum 44x44pt hit targets.
 - WCAG AA contrast on light and dark themes.
 
 ## License
 
-© Humn Sprt Ltd. All rights reserved.
+All rights reserved.

@@ -16,6 +16,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   orientation: 'portrait',
   icon: './assets/icons/icon.png',
   userInterfaceStyle: 'automatic',
+  // @ts-expect-error -- newArchEnabled is supported by Expo SDK 51+ but not
+  // yet in the published ExpoConfig type for this SDK version.
   newArchEnabled: true,
   splash: {
     image: './assets/splash/splash.png',

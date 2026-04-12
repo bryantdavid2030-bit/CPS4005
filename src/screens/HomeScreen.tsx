@@ -4,6 +4,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Screen } from '@/components/Screen';
 import { CoachCard } from '@/components/CoachCard';
 import { Button } from '@/components/Button';
+import { Logo } from '@/components/Logo';
 import { useTheme } from '@/theme';
 import { coaches } from '@/data/coaches';
 import type { Coach } from '@/types';
@@ -15,15 +16,26 @@ interface HomeScreenProps {
 }
 
 /**
- * Landing feed. Editorial hero + featured coaches + concierge CTA.
+ * Landing feed. Editorial hero + featured coaches + concierge CTA +
+ * disciplines overview + brand footer.
  */
-export function HomeScreen({ onOpenCoach, onOpenAll, onOpenConcierge }: HomeScreenProps) {
+export function HomeScreen({
+  onOpenCoach,
+  onOpenAll,
+  onOpenConcierge,
+}: HomeScreenProps) {
   const theme = useTheme();
 
   const featured = coaches.filter((c) => c.featured);
 
+  // Unique disciplines for the overview section
+  const disciplineNames = Array.from(
+    new Set(coaches.map((c) => c.discipline)),
+  );
+
   return (
     <Screen scroll>
+      {/* ——— HERO ——— */}
       <Animated.View entering={FadeInDown.duration(700)} style={{ marginTop: 16 }}>
         <Text style={[theme.typography.eyebrow, { color: theme.colors.accent }]}>
           Humn Sprt · Curated
@@ -55,14 +67,12 @@ export function HomeScreen({ onOpenCoach, onOpenAll, onOpenConcierge }: HomeScre
 
       <View style={{ height: theme.spacing.huge }} />
 
+      {/* ——— FEATURED ——— */}
       <Text style={[theme.typography.eyebrow, { color: theme.colors.textMuted }]}>
         Featured practitioners
       </Text>
       <View style={{ height: theme.spacing.lg }} />
 
-      {/* Nested FlatList inside a ScrollView triggers a RN warning and
-          virtualisation is wasted here — the featured list is small and
-          already inside a scroll container, so render with .map(). */}
       {featured.map((item, index) => (
         <Animated.View
           key={item.id}
@@ -72,7 +82,44 @@ export function HomeScreen({ onOpenCoach, onOpenAll, onOpenConcierge }: HomeScre
         </Animated.View>
       ))}
 
-      <View style={styles.conciergeCard}>
+      {/* ——— DISCIPLINES ——— */}
+      <View style={[styles.divider, { borderTopColor: theme.colors.border }]}>
+        <Text style={[theme.typography.eyebrow, { color: theme.colors.accent }]}>
+          Disciplines
+        </Text>
+        <Text
+          style={[
+            theme.typography.displayM,
+            { color: theme.colors.text, marginTop: 10 },
+          ]}
+        >
+          From strength to stillness.
+        </Text>
+        <Text
+          style={[
+            theme.typography.body,
+            { color: theme.colors.textMuted, marginTop: 12, marginBottom: 20 },
+          ]}
+        >
+          Every practitioner on our roster specialises in one of the
+          following disciplines. Filter by any on the Roster tab.
+        </Text>
+        <View style={styles.disciplineGrid}>
+          {disciplineNames.map((d) => (
+            <View key={d} style={styles.disciplineItem}>
+              <View style={[styles.dot, { backgroundColor: theme.colors.accent }]} />
+              <Text style={[theme.typography.body, { color: theme.colors.text }]}>
+                {d}
+              </Text>
+            </View>
+          ))}
+        </View>
+        <View style={{ height: 12 }} />
+        <Button label="View all coaches" variant="secondary" onPress={onOpenAll} />
+      </View>
+
+      {/* ——— CONCIERGE ——— */}
+      <View style={[styles.divider, { borderTopColor: theme.colors.border }]}>
         <Text style={[theme.typography.eyebrow, { color: theme.colors.accent }]}>
           For concierges & corporates
         </Text>
@@ -97,16 +144,43 @@ export function HomeScreen({ onOpenCoach, onOpenAll, onOpenConcierge }: HomeScre
         <Button label="Speak to concierge" onPress={onOpenConcierge} />
       </View>
 
-      <View style={{ height: theme.spacing.xxxl }} />
+      {/* ——— FOOTER ——— */}
+      <View style={styles.footer}>
+        <Logo size={32} color={theme.colors.textSubtle} showWordmark={false} />
+        <Text
+          style={[
+            theme.typography.caption,
+            { color: theme.colors.textSubtle, marginTop: 12, textAlign: 'center' },
+          ]}
+        >
+          Built with care. No ads. No noise.
+        </Text>
+      </View>
+
+      <View style={{ height: theme.spacing.xxl }} />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  conciergeCard: {
+  divider: {
     paddingVertical: 40,
     borderTopWidth: StyleSheet.hairlineWidth * 2,
-    borderTopColor: 'rgba(0,0,0,0.1)',
     marginTop: 16,
+  },
+  disciplineGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  disciplineItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '50%',
+    marginBottom: 10,
+  },
+  dot: { width: 4, height: 4, borderRadius: 2, marginRight: 10 },
+  footer: {
+    alignItems: 'center',
+    paddingVertical: 48,
   },
 });

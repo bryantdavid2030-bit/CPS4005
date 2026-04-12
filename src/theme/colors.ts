@@ -52,4 +52,18 @@ export const darkColors = {
   success: palette.success,
 } as const;
 
-export type ColorScheme = typeof lightColors;
+export interface ColorScheme {
+  readonly background: string;
+  readonly surface: string;
+  readonly surfaceAlt: string;
+  readonly text: string;
+  readonly textMuted: string;
+  readonly textSubtle: string;
+  readonly border: string;
+  readonly accent: string;
+  readonly accentSoft: string;
+  readonly inverse: string;
+  readonly inverseText: string;
+  readonly error: string;
+  readonly success: string;
+}
