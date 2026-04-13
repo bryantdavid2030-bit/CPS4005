@@ -1,0 +1,21 @@
+name = "humnsprt-enquiries"
+main = "src/index.ts"
+compatibility_date = "2024-09-01"
+workers_dev = true
+
+# ——————————————————————————————————————————————————————————————
+# Public, non-secret config. Set secrets with:
+#   wrangler secret put RESEND_API_KEY
+# ——————————————————————————————————————————————————————————————
+[vars]
+RESEND_FROM = "Humn Sprt <enquiries@humnsprt.com>"
+RESEND_TO = "hello@humnsprt.com"
+ALLOWED_ORIGINS = "*"
+
+# Uncomment to bind a custom domain once humnsprt.com is on Cloudflare:
+# [[routes]]
+# pattern = "api.humnsprt.com/*"
+# zone_name = "humnsprt.com"
+
+[observability]
+enabled = true

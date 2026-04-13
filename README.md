@@ -6,9 +6,11 @@ corporate clients. Targets iOS and Android from a single codebase.
 
 > Premise: scan humnsprt.com and rebuild it as a premium mobile app.
 > At build time the sandbox blocked outbound requests to humnsprt.com,
-> so content was modelled from the brief. Swap `src/data/coaches.ts`
-> and the hero copy in `src/screens/HomeScreen.tsx` for the real CMS
-> output as soon as the site is reachable — no other changes required.
+> so content was modelled from the brief. `src/data/coaches.ts` ships
+> a single dummy profile so every screen has something to render —
+> swap it (and the hero copy in `src/screens/HomeScreen.tsx`) for the
+> real CMS output as soon as the site is reachable. No other code
+> changes required.
 
 ## Stack
 
@@ -19,6 +21,7 @@ corporate clients. Targets iOS and Android from a single codebase.
 - Expo Updates (EAS Update) for OTA delivery
 - GitHub Actions + Fastlane + EAS for CI/CD and store submissions
 - Dependabot for weekly dependency updates
+- Cloudflare Worker + Resend for the enquiry backend (`worker/`)
 
 See `docs/ARCHITECTURE.md` for the reasoning behind each choice.
 
@@ -44,7 +47,33 @@ see `docs/FONTS.md` for details.
 
 The app is fully functional without a backend — `src/services/api.ts`
 falls back to the seed data in `src/data/coaches.ts` when no API
-base URL is set.
+base URL is set, and `submitEnquiry` falls back to a console log
+when no enquiry endpoint is set.
+
+## Enquiry backend (Cloudflare Worker → Resend)
+
+Production enquiries are POSTed to a small Cloudflare Worker that
+forwards them to `hello@humnsprt.com` via [Resend](https://resend.com).
+The Resend API key lives as a Worker secret so it never reaches the
+mobile bundle.
+
+```bash
+cd worker
+npm install
+wrangler login
+wrangler secret put RESEND_API_KEY    # paste your Resend key
+npm run deploy
+```
+
+Wrangler prints the live URL — copy it into your root `.env`:
+
+```env
+EXPO_PUBLIC_ENQUIRY_ENDPOINT=https://humnsprt-enquiries.<account>.workers.dev/enquiries
+```
+
+Full setup, custom-domain binding, and local dev instructions are in
+`worker/README.md`. Free tier covers 100k Worker requests/day and
+3,000 Resend emails/month.
 
 ## Key commands
 
@@ -55,7 +84,7 @@ base URL is set.
 | `yarn android`        | Run on an Android emulator                    |
 | `yarn lint`           | ESLint                                        |
 | `yarn typecheck`      | `tsc --noEmit`                                |
-| `yarn test`           | Jest (16 tests across 4 suites)               |
+| `yarn test`           | Jest (mobile suites)                          |
 | `yarn prebuild`       | Generate native iOS / Android projects        |
 | `yarn build:ios`      | EAS build (production iOS)                    |
 | `yarn build:android`  | EAS build (production Android)                |
@@ -100,6 +129,10 @@ docs/
 scripts/
   generate-brand-assets.mjs   SVG -> PNG asset pipeline
   screenshots.ts              Screenshot scene manifest for Fastlane
+worker/
+  src/index.ts    Cloudflare Worker that forwards enquiries to Resend
+  wrangler.toml   Worker config (sender, recipient, allowed origins)
+  README.md       Deploy steps + local dev
 ```
 
 ## Features
@@ -136,6 +169,9 @@ scripts/
 - Three enquiry types: Individual, Hotel/Concierge, Corporate
 - Conditional organisation field for non-individual enquiries
 - Success screen with haptic feedback
+- POSTs to a Cloudflare Worker (`worker/`) that emails via Resend
+- Honeypot field + Worker-side validation; offline fallback when
+  `EXPO_PUBLIC_ENQUIRY_ENDPOINT` is unset
 
 ### Deep linking
 - `humnsprt://` scheme with routes for Home, Roster, About, Account,
@@ -172,7 +208,7 @@ All three pass in CI and locally:
 ```bash
 yarn lint        # ESLint — 0 warnings
 yarn typecheck   # TypeScript strict — 0 errors
-yarn test        # Jest — 16/16 passing
+yarn test        # Jest — all suites passing
 ```
 
 ## Accessibility

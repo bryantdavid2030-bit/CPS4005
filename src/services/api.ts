@@ -4,12 +4,22 @@ import { coaches as localCoaches } from '@/data/coaches';
 /**
  * API client.
  *
- * In development and during offline use this resolves against the
- * bundled seed data in src/data/coaches.ts. In production it should
- * hit the Humn Sprt CMS / backend — swap the fetch calls in below.
+ * Coach data is read from the bundled seed in src/data/coaches.ts
+ * (offline-first). When EXPO_PUBLIC_API_BASE is set, the same calls
+ * hit a real CMS instead.
+ *
+ * Enquiries are POSTed to a Cloudflare Worker (see worker/) which
+ * forwards them to hello@humnsprt.com via Resend. The Worker URL
+ * lives in EXPO_PUBLIC_ENQUIRY_ENDPOINT. When unset, submitEnquiry
+ * falls back to a local log-only stub so dev still works offline.
+ *
+ * Note: Expo inlines `process.env.EXPO_PUBLIC_*` at babel-transform
+ * time, so the constants below are baked into the bundle. Tests
+ * exercise `postEnquiry()` directly with an explicit endpoint.
  */
 
 const API_BASE = process.env.EXPO_PUBLIC_API_BASE ?? '';
+const ENQUIRY_ENDPOINT = process.env.EXPO_PUBLIC_ENQUIRY_ENDPOINT ?? '';
 
 export async function listCoaches(): Promise<Coach[]> {
   if (!API_BASE) return localCoaches;
@@ -26,17 +36,51 @@ export async function getCoach(id: string): Promise<Coach | null> {
   return (await res.json()) as Coach;
 }
 
+/**
+ * Pure POST helper. Exported so tests can drive it without depending
+ * on the build-time inlined env var. Throws on network failure or
+ * non-OK response.
+ */
+export async function postEnquiry(
+  endpoint: string,
+  enquiry: Enquiry,
+): Promise<void> {
+  let res: Response;
+  try {
+    res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(enquiry),
+    });
+  } catch {
+    throw new Error(
+      'Could not reach the enquiry service. Check your connection and try again.',
+    );
+  }
+
+  if (!res.ok) {
+    let detail = '';
+    try {
+      const body = (await res.json()) as { error?: string };
+      detail = body.error ?? '';
+    } catch {
+      // ignore parse errors — fall through to generic message
+    }
+    throw new Error(
+      detail
+        ? `Enquiry failed: ${detail}`
+        : `Enquiry failed (${res.status}). Please try again shortly.`,
+    );
+  }
+}
+
 export async function submitEnquiry(enquiry: Enquiry): Promise<void> {
-  if (!API_BASE) {
-    // Local fallback: log and succeed after a short delay.
+  if (!ENQUIRY_ENDPOINT) {
+    // Local fallback: log and succeed after a short delay so the
+    // success screen still works in offline / pre-deploy dev.
     await new Promise((r) => setTimeout(r, 700));
     if (__DEV__) console.log('[enquiry]', enquiry);
     return;
   }
-  const res = await fetch(`${API_BASE}/enquiries`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(enquiry),
-  });
-  if (!res.ok) throw new Error(`Enquiry failed (${res.status})`);
+  return postEnquiry(ENQUIRY_ENDPOINT, enquiry);
 }

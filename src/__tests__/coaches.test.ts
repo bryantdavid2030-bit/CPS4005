@@ -1,6 +1,11 @@
 import { coaches, disciplines, locations } from '../data/coaches';
 
 describe('coach seed data', () => {
+  it('ships exactly one dummy profile until the CMS feed is wired', () => {
+    expect(coaches).toHaveLength(1);
+    expect(coaches[0].id).toBe('c-001');
+  });
+
   it('has unique ids', () => {
     const ids = coaches.map((c) => c.id);
     expect(new Set(ids).size).toBe(ids.length);
@@ -26,5 +31,9 @@ describe('coach seed data', () => {
     for (const c of coaches) {
       expect(allowed.has(c.availability)).toBe(true);
     }
+  });
+
+  it('the dummy coach is featured so the home screen is not empty', () => {
+    expect(coaches.some((c) => c.featured)).toBe(true);
   });
 });

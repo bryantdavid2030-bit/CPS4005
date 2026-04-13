@@ -6,6 +6,10 @@ During development and for offline demos, coach listings come from
 `src/data/coaches.ts`. In production they should come from the Humn
 Sprt CMS or backend via `src/services/api.ts`.
 
+The seed file currently ships **one dummy profile** so every screen
+has something to render. Replace it with the full launch roster (or
+delete its contents and rely on the CMS) before going live.
+
 ## Coach schema
 
 ```ts
