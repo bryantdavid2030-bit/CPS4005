@@ -19,7 +19,17 @@ import { coaches as localCoaches } from '@/data/coaches';
  */
 
 const API_BASE = process.env.EXPO_PUBLIC_API_BASE ?? '';
-const ENQUIRY_ENDPOINT = process.env.EXPO_PUBLIC_ENQUIRY_ENDPOINT ?? '';
+
+/**
+ * Default enquiry endpoint — the live Humn Sprt Cloudflare Worker.
+ * Not a secret (it's a public URL), so it's safe to ship in the
+ * bundle. Override by setting EXPO_PUBLIC_ENQUIRY_ENDPOINT in .env
+ * if you want to point at a staging Worker.
+ */
+const DEFAULT_ENQUIRY_ENDPOINT =
+  'https://humnsprt-enquiries.shy-sun-d665.workers.dev/enquiries';
+const ENQUIRY_ENDPOINT =
+  process.env.EXPO_PUBLIC_ENQUIRY_ENDPOINT || DEFAULT_ENQUIRY_ENDPOINT;
 
 export async function listCoaches(): Promise<Coach[]> {
   if (!API_BASE) return localCoaches;
